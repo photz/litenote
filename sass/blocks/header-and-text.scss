@@ -1,0 +1,24 @@
+.b-header-and-text {
+  display: flex;
+  justify-content: center;
+  padding: 2rem;
+  box-sizing: border-box;
+  color: $blue;
+
+  &--inverted {
+    background-color: $blue;    
+    color: white;
+  }
+
+  &__inner {
+    max-width: 500px;
+    flex: auto;
+  }
+  &__header {
+    font-size: 1.3rem;
+    margin-bottom: 1rem;
+  }
+  &__text {
+  }
+}
+

@@ -1,0 +1,16 @@
+.b-header-text-link {
+  color: $dark-blue;
+  padding: 2rem;
+  box-sizing: border-box;
+  &__header {
+    font-size: 1.3rem;
+    margin-bottom: 1rem;
+    font-weight: bold;
+  }
+  &__text {
+      margin-bottom: 1rem;
+  }
+  &__link {
+
+  }
+}

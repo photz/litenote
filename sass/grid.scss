@@ -1,0 +1,14 @@
+.grid {
+  &__cell {
+    &--column {
+
+    }
+    &--row {
+      display: flex;
+      // @todo use classes instead!
+      & > * {
+        flex: 1;
+      }
+    }
+  }
+}

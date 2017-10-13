@@ -1,0 +1,19 @@
+.b-text-on-image {
+  background-size: cover;
+  padding: 2rem;
+  min-height: 20rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-position: center;
+  
+  &__text {
+    display: block;
+    flex: auto;
+    color: $blue;
+    font-size: 2rem;
+    max-width: 700px;
+  }
+}
+
+
