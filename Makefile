@@ -2,8 +2,9 @@ build_dir=build
 dest=$(build_dir)/main.js
 sass_root=sass
 css_dest=$(build_dir)/stylesheet.css
+optimized_dest=$(build_dir)/app.js
 
-.PHONY: watch build build-sass watch-sass
+.PHONY: watch build build-sass watch-sass closure-build
 
 watch:
 	find src -name "*.elm" | grep -v "#" | entr make build
@@ -19,3 +20,11 @@ build-sass:
 
 watch-sass:
 	find $(sass_root) -name '*.scss' | grep -v '#' | entr make build-sass
+
+closure-build:
+	java -jar closure.jar \
+	--js $(dest) \
+	--js_output_file $(optimized_dest) \
+	--compilation_level SIMPLE
+
+

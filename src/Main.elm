@@ -8,6 +8,8 @@ import Route exposing (Route)
 import Server
 import WebSocket
 import Routing
+import Editor.View as Editor exposing (view)
+import Editor.Msg as Editor exposing (Msg)
 
 subscriptions : Model -> Sub Msg
 subscriptions = always (Sub.batch [ WebSocket.listen server WsMsg ])
@@ -28,6 +30,7 @@ getPageById pageId = WebSocket.send server
 
 init : Navigation.Location -> ( Model, Cmd Msg )
 init location = ( { routes = []
+                  , editing = Nothing
                   , currentPage = Nothing
                   }, Cmd.batch [ getRoutes, getStartPage ] )
 
@@ -44,6 +47,7 @@ main = Navigation.program OnLocationChange
 
 type alias Model = { currentPage : Maybe Page.Model
                    , routes : List Route
+                   , editing : Maybe Block.Model
                    }
 
 -- UPDATE
@@ -52,6 +56,7 @@ type Msg = OnLocationChange Navigation.Location
          | HeaderMsg Header.Msg
          | PageMsg Page.Msg
          | WsMsg String
+         | EditorMsg Editor.Msg
 
 updateWs : String -> Model -> ( Model, Cmd Msg )
 updateWs content model =
@@ -76,8 +81,15 @@ update msg model =
                     ( { model | currentPage = Nothing }, Cmd.none )
                 Just pageId ->
                     ( model, getPageById pageId )
-        WsMsg content -> updateWs content model
-        _ -> ( model, Cmd.none )
+        WsMsg content ->
+            updateWs content model
+        EditorMsg Editor.Close ->
+            ( { model | editing = Nothing }, Cmd.none )
+        PageMsg (Page.SelectBlock block) ->
+            ( { model | editing = Just block }, Cmd.none )
+        x ->
+            let _ = Debug.log "unknown message" x in
+            ( model, Cmd.none )
 
 -- VIEW
 
@@ -90,5 +102,10 @@ view model =
             div []
             [ Header.view page.id model.routes |> Html.map HeaderMsg
             , Page.view page |> Html.map PageMsg
+            , case model.editing of
+                  Nothing ->
+                      div [] []
+                  Just someBlock ->
+                      Editor.view someBlock |> Html.map EditorMsg
             ]
             

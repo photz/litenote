@@ -1,0 +1,30 @@
+
+.block {
+  position: relative;
+  overflow: hidden;
+  
+  &--editable {
+    &:hover {
+
+      .block__edit-button {
+        transform: none;
+        background-color: lighten($blue, 15%);
+      }
+    }
+  }
+
+  &__edit-button {
+    transform: translateX(100%);
+    transition: all 0.3s ease-in-out;
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 3rem;
+    height: 3rem;
+    background-color: lighten($blue, 10%);
+    cursor: pointer;
+    &:hover {
+      background-color: lighten($blue, 20%);
+    }
+  }
+}

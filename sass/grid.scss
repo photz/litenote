@@ -1,14 +1,26 @@
 .grid {
   &__cell {
+    flex: 1;
+
     &--column {
 
     }
     &--row {
       display: flex;
-      // @todo use classes instead!
-      & > * {
-        flex: 1;
-      }
+
+      
+      
     }
+
+    &--1-2 {
+      flex-basis: 50%;
+    }
+    &--1-3 {
+      flex-basis: 33%;
+    }
+    &--1-4 {
+      flex-basis: 25%;
+    }
+    
   }
 }
