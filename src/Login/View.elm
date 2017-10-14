@@ -1,10 +1,12 @@
 module Login.View exposing (view)
 
-import Login.Model exposing (..)
-import Login.Msg exposing (..)
 import Html exposing (Html, div, button, input)
 import Html.Attributes exposing (class, classList, type_)
 import Html.Events exposing (onClick, onInput)
+
+import Login.Model exposing (..)
+import Login.Msg exposing (..)
+import Session.Model as Session
 
 view : Model -> Html Msg
 view model =

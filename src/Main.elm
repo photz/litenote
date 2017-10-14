@@ -17,7 +17,7 @@ import Page
 import Route exposing (Route)
 import Routing
 import Server
-
+import Session.Model as Session exposing (..)
 
 subscriptions : Model -> Sub Msg
 subscriptions = always (Sub.batch [ WebSocket.listen server WsMsg
@@ -31,7 +31,7 @@ init location = ( { routes = []
                   , currentPage = Nothing
                   , login = Nothing
                   , controlPressed = False
-                  , session = False
+                  , session = Session.init
                   }, Cmd.batch [ getRoutes, getStartPage ] )
 
 main = Navigation.program OnLocationChange
@@ -41,7 +41,6 @@ main = Navigation.program OnLocationChange
        , subscriptions = subscriptions
        }
 
-
 -- MODEL
 
 type alias Model = { currentPage : Maybe Page.Model
@@ -49,7 +48,7 @@ type alias Model = { currentPage : Maybe Page.Model
                    , editing : Maybe Block.Model
                    , login : Maybe Login.Model
                    , controlPressed : Bool
-                   , session : Bool
+                   , session : Session.Model
                    }
 
 -- UPDATE
@@ -160,7 +159,7 @@ update msg model =
 
         LoginMsg (Login.Submit email password) ->
             let _ = Debug.log "login" ( email, password )
-            in ( model, Cmd.none )
+            in ( { model | session = Session.LoggedIn, login = Nothing }, Cmd.none )
 
         LoginMsg Login.Hide ->
             ( { model | login = Nothing }, Cmd.none )
@@ -202,7 +201,7 @@ updateKeyDown m k =
             , editing = Nothing
             }
         77 ->
-            if m.controlPressed
+            if m.controlPressed && (Session.isGuest m.session)
             then { m | login = Just Login.init }
             else m
         _ ->
@@ -219,7 +218,7 @@ view model =
         Just page ->
             div []
             [ Header.view page.id model.routes |> Html.map HeaderMsg
-            , Page.view page |> Html.map PageMsg
+            , Page.view model.session page |> Html.map PageMsg
             , case model.editing of
                   Nothing ->
                       div [] []
@@ -231,4 +230,6 @@ view model =
                   Just loginModel ->
                       Login.view loginModel |> Html.map LoginMsg
             ]
+            
+
             

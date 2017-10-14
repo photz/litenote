@@ -4,6 +4,7 @@ import Html exposing (Html, div, span, a)
 import Html.Attributes exposing (class, classList, href, style)
 import Html.Events exposing (onClick)
 import Block
+import Session.Model as Session exposing (..)
 
 type alias Model = { name : String
                    , id : Int
@@ -43,8 +44,8 @@ renderTextOnImage text image =
     )
 
 
-renderContainer : Block.Direction -> List (Block.Model) -> ( List (Html.Attribute Msg), List (Html Msg) )
-renderContainer direction children =
+renderContainer : Session.Model -> Block.Direction -> List (Block.Model) -> ( List (Html.Attribute Msg), List (Html Msg) )
+renderContainer session direction children =
     let modifier = case direction of
                        Block.Row -> "grid__cell--row"
                        Block.Column -> "grid__cell--column"
@@ -53,7 +54,7 @@ renderContainer direction children =
                       , (modifier, True)
                       ]
           ]
-        , children |> List.map (renderBlock (List.length children))
+        , children |> List.map (renderBlock session (List.length children))
         ) 
             
 renderImage : String -> ( List (Html.Attribute Msg), List (Html Msg) )
@@ -82,14 +83,14 @@ renderHeaderTextLink header text link =
       ]
     )
 
-cell : Bool -> Int -> Block.Model -> ( List (Html.Attribute Msg), List (Html Msg)) -> Html Msg
-cell editable childrenOfParent block ( attributes, children ) =
+cell : Session.Model -> Bool -> Int -> Block.Model -> ( List (Html.Attribute Msg), List (Html Msg)) -> Html Msg
+cell session editable childrenOfParent block ( attributes, children ) =
     let cellClasslist =
             classList
             [ ("grid__cell", True)
             , ("grid__cell--1-" ++ (toString childrenOfParent), True)
             , ("block", True)
-            , ("block--editable", editable)
+            , ("block--editable", Session.mayEditBlocks session && editable)
             ]
     in
         let editButton =
@@ -100,27 +101,24 @@ cell editable childrenOfParent block ( attributes, children ) =
         in
             Html.node "div" (cellClasslist::attributes) (editButton::children)
 
-renderBlock : Int -> Block.Model -> Html Msg
-renderBlock n block =
+renderBlock : Session.Model -> Int -> Block.Model -> Html Msg
+renderBlock session n block =
     case block.data of
         Block.TextOnImage { text, image } ->
-            cell True n block (renderTextOnImage text image)
+            cell session True n block (renderTextOnImage text image)
         Block.HeaderAndText { header, text, inverted } ->
-            cell True n block (renderHeaderAndText header text inverted)
+            cell session True n block (renderHeaderAndText header text inverted)
         Block.Container direction children ->
-            cell False n block (renderContainer direction children)
+            cell session False n block (renderContainer session direction children)
         Block.Image image ->
-            cell True n block (renderImage image)
+            cell session True n block (renderImage image)
         Block.HeaderTextLink { header, text, link } ->
-            cell True n block (renderHeaderTextLink header text link)
+            cell session True n block (renderHeaderTextLink header text link)
 
         
-renderPage : Model -> Html Msg
-renderPage page = div
+view : Session.Model -> Model -> Html Msg
+view session page = div
                   [ class "grid" ]
-                  [ page.content |> renderBlock 1 ]
-
-view : Model -> Html Msg
-view m = renderPage m
+                  [ page.content |> renderBlock session 1 ]
 
          
