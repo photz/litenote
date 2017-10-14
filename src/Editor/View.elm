@@ -2,17 +2,19 @@ module Editor.View exposing (view)
 
 import Html exposing (Html, div, button, textarea)
 import Html.Attributes exposing (class, classList)
-import Html.Events exposing (onClick)
+import Html.Events exposing (onClick, onInput)
 import Editor.Msg exposing (..)
 import Block
 
-textinput : String -> String -> Html Msg
-textinput label content =
+textinput : String -> String -> String -> Html Msg
+textinput name label content =
     div [ class "field" ]
         [ div [ class "field__label" ]
               [ Html.text label ]
         , textarea
-              [ class "field__input" ]
+              [ class "field__input"
+              , onInput (\v -> ChangeField { name = name, newValue = v })
+              ]
               [ Html.text content ]
         ]
 
@@ -33,7 +35,9 @@ header = div [ class "editor__header" ]
          [ logo, closeButton ]
 
 save : Html Msg
-save = button [ class "editor__save" ]
+save = button [ class "editor__save"
+              , onClick SaveBlock
+              ]
        [ Html.text "Save" ]
 
 type Field = ImageField { name : String
@@ -51,7 +55,7 @@ type Field = ImageField { name : String
 
 getFields : Block.Model -> List Field
 getFields block =
-    case block of
+    case block.data of
         Block.HeaderAndText data ->
             [ TextField { name = "header"
                         , label = "Header"
@@ -85,7 +89,7 @@ renderField : Field -> Html Msg
 renderField field =
     case field of
         TextField { name, label, currentValue } ->
-            textinput label currentValue
+            textinput name label currentValue
         _ -> div [] []
 
 view : Block.Model -> Html Msg
@@ -98,3 +102,4 @@ view block = div
                  |> List.map renderField)
              , save
              ]
+

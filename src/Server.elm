@@ -36,12 +36,12 @@ directionDecoder = Decode.map (\s -> case s of
 childrenDecoder : Decode.Decoder (List Block.Model)
 childrenDecoder = Decode.list (Decode.lazy (\_ -> blockDecoder))
 
-containerDecoder : Decode.Decoder Block.Model
+containerDecoder : Decode.Decoder Block.Data
 containerDecoder = decode Block.Container
                  |> required "direction" directionDecoder
                  |> required "children" (Decode.lazy (\_ -> childrenDecoder))
 
-imageDecoder : Decode.Decoder Block.Model
+imageDecoder : Decode.Decoder Block.Data
 imageDecoder = decode Block.Image
              |> required "image" Decode.string
 
@@ -51,7 +51,7 @@ headerTextLinkDecoder = decode Block.HeaderTextLinkData
                        |> required "text" Decode.string
                        |> required "link" Decode.string
 
-blockMultiplexer : String -> Decode.Decoder Block.Model
+blockMultiplexer : String -> Decode.Decoder Block.Data
 blockMultiplexer blockType =
     case blockType of
         "header-and-text" ->
@@ -67,9 +67,12 @@ blockMultiplexer blockType =
         _ -> Decode.fail "fail"
 
 blockDecoder : Decode.Decoder Block.Model
-blockDecoder = Decode.andThen
-               blockMultiplexer
-               (Decode.field "block-type" Decode.string)
+blockDecoder = Decode.succeed Block.Model
+               |> Decode.andThen (\f -> Decode.map f (Decode.field "id" Decode.int))
+               |> Decode.andThen (\f -> Decode.map f
+                               (Decode.andThen blockMultiplexer
+                                    (Decode.field "block-type"
+                                         Decode.string)))
 
 pageDecoder : Decode.Decoder Page.Model
 pageDecoder = decode Page.Model

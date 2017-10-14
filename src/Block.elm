@@ -16,8 +16,12 @@ type alias TextOnImageData = { text : String
                              , image : String
                              }
 
-type Model = HeaderAndText HeaderAndTextData
-           | TextOnImage TextOnImageData
-           | Container Direction (List Model)
-           | Image String
-           | HeaderTextLink HeaderTextLinkData
+type Data = HeaderAndText HeaderAndTextData
+          | TextOnImage TextOnImageData
+          | Container Direction (List Model)
+          | Image String
+          | HeaderTextLink HeaderTextLinkData
+            
+type alias Model = { id : Int
+                   , data : Data
+                   }

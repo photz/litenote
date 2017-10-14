@@ -102,7 +102,7 @@ cell editable childrenOfParent block ( attributes, children ) =
 
 renderBlock : Int -> Block.Model -> Html Msg
 renderBlock n block =
-    case block of
+    case block.data of
         Block.TextOnImage { text, image } ->
             cell True n block (renderTextOnImage text image)
         Block.HeaderAndText { header, text, inverted } ->
@@ -122,3 +122,5 @@ renderPage page = div
 
 view : Model -> Html Msg
 view m = renderPage m
+
+         

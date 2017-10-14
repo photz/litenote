@@ -10,6 +10,7 @@ import WebSocket
 import Routing
 import Editor.View as Editor exposing (view)
 import Editor.Msg as Editor exposing (Msg)
+import Json.Encode as Encode
 
 subscriptions : Model -> Sub Msg
 subscriptions = always (Sub.batch [ WebSocket.listen server WsMsg ])
@@ -27,6 +28,25 @@ getPageById : Int -> Cmd Msg
 getPageById pageId = WebSocket.send server
                      ("{\"msg-type\":\"get-page\",\"page-id\":"
                           ++ (toString pageId) ++ "}")
+
+saveBlock : Block.Model -> Cmd Msg
+saveBlock block =
+    let attributes = [ ("msg-type", Encode.string "save-block")
+                     , ("block-id", Encode.int block.id)
+                     ]
+    in
+
+        case block.data of
+            Block.HeaderAndText { header, text, inverted } ->
+                let attr = List.append attributes
+                           [ ("header", Encode.string header)
+                           , ("text", Encode.string text)
+                           , ("inverted", Encode.bool inverted)
+                           ]
+                in
+                    WebSocket.send server
+                        (Encode.object attr |> Encode.encode 0)
+            _ -> Cmd.none
 
 init : Navigation.Location -> ( Model, Cmd Msg )
 init location = ( { routes = []
@@ -71,6 +91,23 @@ updateWs content model =
                 Server.GetPage page ->
                     ( { model | currentPage = Just page }, Cmd.none )
 
+updateBlock : Block.Model -> String -> String -> Block.Model
+updateBlock block name newValue =
+    let _ = Debug.log "update block" (block, name, newValue) in
+    case block.data of
+        Block.HeaderAndText { text, header, inverted } ->
+            let data = { text = text
+                       , header = header
+                       , inverted = inverted
+                       }
+            in
+                (case name of
+                     "header" ->
+                         { block | data = Block.HeaderAndText { data | header = newValue } }
+                     "text" ->
+                         { block | data = Block.HeaderAndText { data | text = newValue } }
+                     _ -> block)
+        _ -> block
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
@@ -85,6 +122,17 @@ update msg model =
             updateWs content model
         EditorMsg Editor.Close ->
             ( { model | editing = Nothing }, Cmd.none )
+        EditorMsg (Editor.ChangeField { name, newValue })  ->
+            (case model.editing of 
+                 Nothing -> ( model, Cmd.none )
+                 Just block ->
+                     let updatedBlock = updateBlock block name newValue in
+                     ( { model | editing = Just updatedBlock }, Cmd.none ))
+        EditorMsg Editor.SaveBlock ->
+            (case model.editing of
+                 Nothing -> ( model, Cmd.none )
+                 Just block ->
+                     ( model, saveBlock block ))
         PageMsg (Page.SelectBlock block) ->
             ( { model | editing = Just block }, Cmd.none )
         x ->
