@@ -1,19 +1,68 @@
 import Html exposing (Html, div, span)
 import Html.Attributes exposing (class, classList, href, style)
-import Navigation
-import Header
-import Page
-import Block
-import Route exposing (Route)
-import Server
-import WebSocket
-import Routing
-import Editor.View as Editor exposing (view)
-import Editor.Msg as Editor exposing (Msg)
 import Json.Encode as Encode
+import Keyboard
+import Navigation
+import WebSocket
+
+import Block
+import Editor.Msg as Editor exposing (Msg)
+import Editor.View as Editor exposing (view)
+import Header
+import Login.Model as Login exposing (..)
+import Login.Msg as Login exposing (..)
+import Login.Update as Login exposing (..)
+import Login.View as Login exposing (view)
+import Page
+import Route exposing (Route)
+import Routing
+import Server
+
 
 subscriptions : Model -> Sub Msg
-subscriptions = always (Sub.batch [ WebSocket.listen server WsMsg ])
+subscriptions = always (Sub.batch [ WebSocket.listen server WsMsg
+                                  , Keyboard.downs KeyDown
+                                  , Keyboard.ups KeyUp
+                                  ])
+
+init : Navigation.Location -> ( Model, Cmd Msg )
+init location = ( { routes = []
+                  , editing = Nothing
+                  , currentPage = Nothing
+                  , login = Nothing
+                  , controlPressed = False
+                  , session = False
+                  }, Cmd.batch [ getRoutes, getStartPage ] )
+
+main = Navigation.program OnLocationChange
+       { init = init
+       , view = view
+       , update = update
+       , subscriptions = subscriptions
+       }
+
+
+-- MODEL
+
+type alias Model = { currentPage : Maybe Page.Model
+                   , routes : List Route
+                   , editing : Maybe Block.Model
+                   , login : Maybe Login.Model
+                   , controlPressed : Bool
+                   , session : Bool
+                   }
+
+-- UPDATE
+
+type Msg = OnLocationChange Navigation.Location
+         | HeaderMsg Header.Msg
+         | PageMsg Page.Msg
+         | WsMsg String
+         | EditorMsg Editor.Msg
+         | LoginMsg Login.Msg
+         | KeyUp Int
+         | KeyDown Int
+           
 
 server : String
 server = "ws://127.0.0.1:3000"
@@ -48,35 +97,7 @@ saveBlock block =
                         (Encode.object attr |> Encode.encode 0)
             _ -> Cmd.none
 
-init : Navigation.Location -> ( Model, Cmd Msg )
-init location = ( { routes = []
-                  , editing = Nothing
-                  , currentPage = Nothing
-                  }, Cmd.batch [ getRoutes, getStartPage ] )
 
-main = Navigation.program OnLocationChange
-       { init = init
-       , view = view
-       , update = update
-       , subscriptions = subscriptions
-       }
-
-
--- MODEL
-
-
-type alias Model = { currentPage : Maybe Page.Model
-                   , routes : List Route
-                   , editing : Maybe Block.Model
-                   }
-
--- UPDATE
-
-type Msg = OnLocationChange Navigation.Location
-         | HeaderMsg Header.Msg
-         | PageMsg Page.Msg
-         | WsMsg String
-         | EditorMsg Editor.Msg
 
 updateWs : String -> Model -> ( Model, Cmd Msg )
 updateWs content model =
@@ -118,10 +139,13 @@ update msg model =
                     ( { model | currentPage = Nothing }, Cmd.none )
                 Just pageId ->
                     ( model, getPageById pageId )
+
         WsMsg content ->
             updateWs content model
+
         EditorMsg Editor.Close ->
             ( { model | editing = Nothing }, Cmd.none )
+
         EditorMsg (Editor.ChangeField { name, newValue })  ->
             (case model.editing of 
                  Nothing -> ( model, Cmd.none )
@@ -133,11 +157,57 @@ update msg model =
                  Nothing -> ( model, Cmd.none )
                  Just block ->
                      ( model, saveBlock block ))
+
+        LoginMsg (Login.Submit email password) ->
+            let _ = Debug.log "login" ( email, password )
+            in ( model, Cmd.none )
+
+        LoginMsg Login.Hide ->
+            ( { model | login = Nothing }, Cmd.none )
+
+        LoginMsg msg ->
+            (case model.login of 
+                 Nothing -> ( model, Cmd.none )
+                 Just loginModel ->
+                     let ( u, c ) = Login.update msg loginModel in
+                     ( { model | login = Just u }, Cmd.none )
+            )
+
         PageMsg (Page.SelectBlock block) ->
             ( { model | editing = Just block }, Cmd.none )
+
+        KeyDown keyCode ->
+            ( updateKeyDown model keyCode, Cmd.none )
+
+        KeyUp keyCode ->
+            ( updateKeyUp model keyCode, Cmd.none )
+
         x ->
             let _ = Debug.log "unknown message" x in
             ( model, Cmd.none )
+
+updateKeyUp : Model -> Int -> Model
+updateKeyUp m k =
+    case k of
+        17 -> { m | controlPressed = False }
+        _ -> m
+
+updateKeyDown : Model -> Int -> Model
+updateKeyDown m k =
+    case k of
+        17 ->
+            { m | controlPressed = True }
+        27 ->
+            { m | login = Nothing
+            , editing = Nothing
+            }
+        77 ->
+            if m.controlPressed
+            then { m | login = Just Login.init }
+            else m
+        _ ->
+            m
+                         
 
 -- VIEW
 
@@ -155,5 +225,10 @@ view model =
                       div [] []
                   Just someBlock ->
                       Editor.view someBlock |> Html.map EditorMsg
+            , case model.login of
+                  Nothing ->
+                      div [] []
+                  Just loginModel ->
+                      Login.view loginModel |> Html.map LoginMsg
             ]
             

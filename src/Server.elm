@@ -76,10 +76,10 @@ blockDecoder = Decode.succeed Block.Model
 
 pageDecoder : Decode.Decoder Page.Model
 pageDecoder = decode Page.Model
-              |> required "name" Decode.string
-              |> required "id" Decode.int
-              |> required "content" blockDecoder
-
+            |> required "name" Decode.string
+            |> required "id" Decode.int
+            |> required "content" blockDecoder
+               
 multiplexer : String -> Decode.Decoder ServerMsg
 multiplexer msgType =
     case msgType of
