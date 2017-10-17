@@ -24,7 +24,7 @@
     background-color: lighten($blue, 10%);
     cursor: pointer;
     &:hover {
-      background-color: lighten($blue, 20%);
+      background-color: lighten($blue, 30%) !important;
     }
   }
 }
