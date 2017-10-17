@@ -83,6 +83,41 @@ renderHeaderTextLink header text link =
       ]
     )
 
+renderPortraitWithQuote : Block.PortraitWithQuoteData -> ( List (Html.Attribute Msg), List (Html Msg) )
+renderPortraitWithQuote data =
+    let bem el = "b-portrait-with-quote__" ++ el in
+    let bemEl name = class (bem name) in
+    let bgImg = "url(" ++ data.portrait ++ ")" in
+    let bemElMod el mod =
+            classList [ ( bem el, True )
+                      , ( bem el ++ "--" ++ mod, True )
+                      ]
+    in
+        ( [ classList [ ( "b-portrait-with-quote", True ) ] ]
+        , [ div [ bemEl "portrait"
+                , style [ ( "background-image", bgImg ) ]
+                ]
+                [ div [ bemEl "aspect-ratio-filler" ]
+                      []
+                ]
+          , div [ bemEl "quote-and-author" ]
+              [ div [ bemEl "quote" ]
+                    [ div [ bemElMod "quotation-mark" "open" ]
+                          []
+                    , Html.text data.quote
+                    , div [ bemElMod "quotation-mark" "close" ]
+                        []
+                    ]
+              , div [ bemEl "author" ]
+                  [ span [ bemEl "bar" ]
+                        [ Html.text "───" ]
+              , Html.text data.author
+              ]
+          ]
+      ]
+    )
+          
+
 cell : Session.Model -> Bool -> Int -> Block.Model -> ( List (Html.Attribute Msg), List (Html Msg)) -> Html Msg
 cell session editable childrenOfParent block ( attributes, children ) =
     let cellClasslist =
@@ -114,6 +149,8 @@ renderBlock session n block =
             cell session True n block (renderImage image)
         Block.HeaderTextLink { header, text, link } ->
             cell session True n block (renderHeaderTextLink header text link)
+        Block.PortraitWithQuote data ->
+            cell session True n block (renderPortraitWithQuote data)
 
         
 view : Session.Model -> Model -> Html Msg

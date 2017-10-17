@@ -51,6 +51,12 @@ headerTextLinkDecoder = decode Block.HeaderTextLinkData
                        |> required "text" Decode.string
                        |> required "link" Decode.string
 
+portraitWithQuoteDecoder : Decode.Decoder Block.PortraitWithQuoteData
+portraitWithQuoteDecoder = decode Block.PortraitWithQuoteData
+                         |> required "portrait" Decode.string
+                         |> required "quote" Decode.string
+                         |> required "author" Decode.string
+
 blockMultiplexer : String -> Decode.Decoder Block.Data
 blockMultiplexer blockType =
     case blockType of
@@ -64,6 +70,8 @@ blockMultiplexer blockType =
             imageDecoder
         "header-text-link" ->
             Decode.map Block.HeaderTextLink headerTextLinkDecoder
+        "portrait-with-quote" ->
+            Decode.map Block.PortraitWithQuote portraitWithQuoteDecoder
         _ -> Decode.fail "fail"
 
 blockDecoder : Decode.Decoder Block.Model
