@@ -94,6 +94,34 @@ saveBlock block =
                 in
                     WebSocket.send server
                         (Encode.object attr |> Encode.encode 0)
+            Block.HeaderTextLink { header, text, link } ->
+                let attr = List.append attributes
+                           [ ("header", Encode.string header)
+                           , ("text", Encode.string text)
+                           , ("link", Encode.string link)
+                           ]
+                in
+                    WebSocket.send server
+                        (Encode.object attr |> Encode.encode 0)
+            Block.TextOnImage { text, image } ->
+                let attr = List.append attributes
+                           [ ("text", Encode.string text)
+                           , ("image", Encode.string image)
+                           ]
+                in
+                    WebSocket.send server
+                        (Encode.object attr |> Encode.encode 0)
+
+            Block.PortraitWithQuote { quote, author, portrait } ->
+                let attr = List.append attributes
+                           [ ( "quote", Encode.string quote )
+                           , ( "author", Encode.string author )
+                           , ( "portrait", Encode.string portrait )
+                           ]
+                in
+                    WebSocket.send server
+                        (Encode.object attr |> Encode.encode 0)
+
             _ -> Cmd.none
 
 
@@ -111,23 +139,55 @@ updateWs content model =
                 Server.GetPage page ->
                     ( { model | currentPage = Just page }, Cmd.none )
 
+updateBlockData : Block.Data -> String -> String -> Block.Data
+updateBlockData data name newValue =
+    case data of
+        Block.TextOnImage values ->
+            Block.TextOnImage
+                (case name of
+                     "text" -> { values | text = newValue }
+                     _ -> values)
+
+        Block.Image path ->
+            Block.Image path
+
+        Block.HeaderTextLink values ->
+            Block.HeaderTextLink
+                (case name of
+                     "header" -> { values | header = newValue }
+                     "text" -> { values | text = newValue }
+                     _ -> values)
+
+        Block.HeaderAndText values ->
+            Block.HeaderAndText
+                (case name of
+                     "header" ->
+                         { values | header = newValue }
+                     "text" ->
+                         { values | text = newValue }
+                     _ ->
+                         values)
+
+        Block.PortraitWithQuote values ->
+            Block.PortraitWithQuote
+                (case name of
+                     "quote" ->
+                         { values | quote = newValue }
+                     "author" ->
+                         { values | author = newValue }
+                     _ ->
+                         values)
+
+        x -> x
+            
+
+
 updateBlock : Block.Model -> String -> String -> Block.Model
 updateBlock block name newValue =
     let _ = Debug.log "update block" (block, name, newValue) in
-    case block.data of
-        Block.HeaderAndText { text, header, inverted } ->
-            let data = { text = text
-                       , header = header
-                       , inverted = inverted
-                       }
-            in
-                (case name of
-                     "header" ->
-                         { block | data = Block.HeaderAndText { data | header = newValue } }
-                     "text" ->
-                         { block | data = Block.HeaderAndText { data | text = newValue } }
-                     _ -> block)
-        _ -> block
+    let newBlock = { block | data = updateBlockData block.data name newValue }
+    in
+        newBlock
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =

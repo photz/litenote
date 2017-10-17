@@ -83,6 +83,16 @@ getFields block =
                         }
             ]
         Block.Image path -> []
+        Block.PortraitWithQuote data ->
+            [ TextField { name = "quote"
+                        , label = "Quote"
+                        , currentValue = data.quote
+                        }
+            , TextField { name = "author"
+                        , label = "Author"
+                        , currentValue = data.author
+                        }
+            ]
         _ -> []
 
 renderField : Field -> Html Msg
