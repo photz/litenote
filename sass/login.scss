@@ -41,23 +41,27 @@
 
   &__body {
     background: #fff;
-    padding: 0.5rem 1rem;
+    padding: 1rem;
   }
 
   &__field {
     margin: 0.5rem 0rem;
+    display: flex;
+    flex-direction: column;
   }
 
   &__input {
     border: none;
     border-bottom: 1px solid grey;
+    outline: none;
   }
 
   &__label {
-    margin-bottom: 1rem;
+    margin-bottom: 0.5rem;
   }
 
-  &__input {
-    
+  &__error {
+    color: red;;
+    margin-top: 0.5rem;
   }
 }
