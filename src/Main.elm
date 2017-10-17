@@ -158,8 +158,18 @@ update msg model =
                      ( model, saveBlock block ))
 
         LoginMsg (Login.Submit email password) ->
-            let _ = Debug.log "login" ( email, password )
-            in ( { model | session = Session.LoggedIn, login = Nothing }, Cmd.none )
+            let ( session, login )
+                = case ( email, password ) of
+                      ( "test", "" ) ->
+                          ( Session.LoggedIn, Nothing )
+                      _ ->
+                          ( Session.Guest
+                          , Maybe.map Login.showError model.login
+                          )
+            in
+                ( { model | session = session, login = login }
+                , Cmd.none
+                )
 
         LoginMsg Login.Hide ->
             ( { model | login = Nothing }, Cmd.none )

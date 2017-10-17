@@ -8,6 +8,10 @@ import Login.Model exposing (..)
 import Login.Msg exposing (..)
 import Session.Model as Session
 
+renderError : Html Msg
+renderError = div [ class "login__error" ]
+              [ Html.text "Incorrect combination of email and password" ]
+
 view : Model -> Html Msg
 view model =
     div [ class "login" ]
@@ -49,6 +53,9 @@ view model =
                           ]
                               [ Html.text "Login" ]
                         ]
+                  , case model.error of
+                        True -> renderError
+                        False -> div [] []
                   ]
 
             ]
