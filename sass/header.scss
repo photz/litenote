@@ -1,7 +1,7 @@
 .header {
   display: flex;
   justify-content: center;
-  padding: 2rem;
+  padding: 1rem 2rem;
   padding-bottom: 0;
 
   &__inner {
@@ -9,14 +9,15 @@
     display: flex;
     justify-content: space-between;
     max-width: 1000px;
+    align-items: flex-end;
   }
 
   &__logo {
     background-image: url(ihp-logo.svg);
     background-size: contain;
     background-repeat: no-repeat;
-    min-width: 100px;
-    min-height: 50px;
+    width: 5.5rem;
+    height: 4rem;
   }
 
   &__nav {
