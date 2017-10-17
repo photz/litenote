@@ -67,8 +67,8 @@ getFields block =
                         }
             ]
         Block.TextOnImage data ->
-            [ TextField { name = "header"
-                        , label = "Header"
+            [ TextField { name = "text"
+                        , label = "Text"
                         , currentValue = data.text
                         }
             ]
