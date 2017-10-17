@@ -1,0 +1,66 @@
+.b-portrait-with-quote {
+  $red: #B92E29;
+  display: flex;
+  justify-content: center;
+
+  &__inner {
+    display: flex;
+    align-items: center;
+    padding: 4rem;
+    max-width: 700px;
+  }
+
+  &__portrait {
+    background-position: center;
+    background-size: cover;
+    flex: 1 0;
+    border-radius: 50%;
+    margin-right: 4rem;
+  }
+
+  // an element inside portrait to make sure
+  // the portrait has an aspect-ratio of 1:1
+  &__aspect-ratio-filler {
+    height: 0;
+    padding-bottom: 100%;
+  }
+
+  &__quote-and-author {
+    flex: 1 0;
+  }
+
+  &__quote {
+    position: relative;
+    margin-bottom: 2rem;
+    color: #133767;
+  }
+
+  &__author {
+    font-weight: bold;
+    color: #133767;
+  }
+
+  &__bar {
+    color: $red;
+    margin-right: 0.5rem;
+  }
+
+  &__quotation-mark {
+
+    color: $red;
+    font-size: 3rem;
+    position: absolute;
+
+
+    &--open {
+      top: 0;
+      left: 0;
+      transform: translatex(-130%);
+      line-height: 0;
+    }
+
+    &--close {
+      transform: translatey(-30%)
+    }
+  }
+}
