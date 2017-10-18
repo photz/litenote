@@ -1,7 +1,7 @@
 module Page exposing (..)
 
 import Html exposing (Html, div, span, a)
-import Html.Attributes exposing (class, classList, href, style)
+import Html.Attributes exposing (class, classList, href, style, attribute)
 import Html.Events exposing (onClick)
 import Block
 import Session.Model as Session exposing (..)

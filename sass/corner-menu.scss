@@ -1,0 +1,17 @@
+.corner-menu {
+  bottom: 0;
+  right: 0;
+  position: fixed;
+
+  &__button {
+    width: 2rem;
+    height: 2rem;
+    background: $blue;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+
+    &--active {
+      background: lighten($blue, 30%);
+    }
+  }
+}

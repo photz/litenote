@@ -1,0 +1,10 @@
+.page {
+  transition: all 0.3s ease-in-out;
+  transform-origin: top;
+  background: #fff;
+  min-height: 100vh;
+
+  &--edit-mode {
+    transform: scale(0.4) translateY(100px);
+  }
+}

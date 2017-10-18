@@ -3,12 +3,14 @@ $light-blue: #6689B7;
 $light-grey: #E7E7E7;
 $blue: #366094;
 
+
 html {
   min-height: 100%;
   position: relative;
 }
 
 body {
+  background: grey;
   height: 100%;
   font-size: 0.8rem;
   padding: 0;

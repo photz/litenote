@@ -1,5 +1,6 @@
 import Html exposing (Html, div, span)
 import Html.Attributes exposing (class, classList, href, style)
+import Html.Events exposing (onClick)
 import Json.Encode as Encode
 import Keyboard
 import Navigation
@@ -19,10 +20,12 @@ import Routing
 import Server
 import Session.Model as Session exposing (..)
 
+
 subscriptions : Model -> Sub Msg
 subscriptions = always (Sub.batch [ WebSocket.listen server WsMsg
                                   , Keyboard.downs KeyDown
                                   , Keyboard.ups KeyUp
+                                  , Test.blockId MouseOverBlock
                                   ])
 
 init : Navigation.Location -> ( Model, Cmd Msg )
@@ -32,6 +35,7 @@ init location = ( { routes = []
                   , login = Nothing
                   , controlPressed = False
                   , session = Session.init
+                  , editMode = False
                   }, Cmd.batch [ getRoutes, getStartPage ] )
 
 main = Navigation.program OnLocationChange
@@ -49,6 +53,7 @@ type alias Model = { currentPage : Maybe Page.Model
                    , login : Maybe Login.Model
                    , controlPressed : Bool
                    , session : Session.Model
+                   , editMode : Bool
                    }
 
 -- UPDATE
@@ -61,7 +66,7 @@ type Msg = OnLocationChange Navigation.Location
          | LoginMsg Login.Msg
          | KeyUp Int
          | KeyDown Int
-           
+         | ToggleMode
 
 server : String
 server = "ws://127.0.0.1:3000"
@@ -217,6 +222,11 @@ update msg model =
                  Just block ->
                      ( model, saveBlock block ))
 
+        ToggleMode ->
+            ( { model | editMode = not model.editMode }
+            , Cmd.none
+            )
+
         LoginMsg (Login.Submit email password) ->
             let ( session, login )
                 = case ( email, password ) of
@@ -280,6 +290,18 @@ updateKeyDown m k =
 
 -- VIEW
 
+renderCornerMenu : Model -> Html Msg
+renderCornerMenu m =
+    div [ class "corner-menu" ]
+        [ div [ classList [ ( "corner-menu__button", True )
+                          , ( "corner-menu__button--active", m.editMode )
+                          ]
+              , onClick ToggleMode
+              ]
+              []
+        ]
+
+
 view : Model -> Html Msg
 view model =
     case model.currentPage of
@@ -287,8 +309,13 @@ view model =
             div [] [ Html.text "Please wait" ]
         Just page ->
             div []
-            [ Header.view page.id model.routes |> Html.map HeaderMsg
-            , Page.view model.session page |> Html.map PageMsg
+            [ div [ classList [ ( "page", True )
+                              , ( "page--edit-mode", model.editMode )
+                              ]
+                  ]
+                  [ Header.view page.id model.routes |> Html.map HeaderMsg
+                  , Page.view model.session page |> Html.map PageMsg
+                  ]
             , case model.editing of
                   Nothing ->
                       div [] []
@@ -299,6 +326,11 @@ view model =
                       div [] []
                   Just loginModel ->
                       Login.view loginModel |> Html.map LoginMsg
+            , case Session.mayEditBlocks model.session of
+                  False ->
+                      div [] []
+                  True ->
+                      renderCornerMenu model
             ]
             
 
