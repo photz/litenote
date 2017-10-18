@@ -17,29 +17,29 @@ getPath : Model -> String
 getPath page = "#" ++ "unknown"
 
 
-renderHeaderAndText : String -> String -> Bool -> ( List (Html.Attribute Msg), List (Html Msg) )
-renderHeaderAndText header text inverted =
+renderHeaderAndText : Block.HeaderAndTextData -> ( List (Html.Attribute Msg), List (Html Msg) )
+renderHeaderAndText data =
     ( [ classList [ ("b-header-and-text", True)
-                  , ("b-header-and-text--inverted", inverted)
+                  , ("b-header-and-text--inverted", data.inverted)
                   ]
       ]
 
     , [ div [ class "b-header-and-text__inner" ]
             [ div [ class "b-header-and-text__header" ]
-                  [ Html.text header ]
+                  [ Html.text data.header ]
             , div [ class "b-header-and-text__text" ]
-                [ Html.text text ]
+                [ Html.text data.text ]
             ]
       ]
     )
 
 
-renderTextOnImage text image =
+renderTextOnImage data =
     ( [ class "b-text-on-image"
-      , style [ ("background-image", "url(" ++ image ++ ")") ]
+      , style [ ("background-image", "url(" ++ data.image ++ ")") ]
       ]
     , [ span [ class "b-text-on-image__text" ]
-            [ Html.text text ]
+            [ Html.text data.text ]
       ]
     )
 
@@ -67,17 +67,17 @@ renderImage image =
         , []
         )
 
-renderHeaderTextLink : String -> String -> String -> ( List (Html.Attribute Msg), List (Html Msg) )
-renderHeaderTextLink header text link =
+renderHeaderTextLink : Block.HeaderTextLinkData -> ( List (Html.Attribute Msg), List (Html Msg) )
+renderHeaderTextLink data =
     ( [ classList [ ("b-header-text-link", True) ] ]
     , [ div [ class "b-header-text-link__header" ]
-            [ Html.text header ]
+            [ Html.text data.header ]
       , div [ class "b-header-text-link__text" ]
-            [ Html.text text ]
+            [ Html.text data.text ]
       , a [ classList [ ("b-header-text-link__link", True)
                       , ("button", True)
                       ]
-          , href ("#" ++ link)
+          , href ("#" ++ data.link)
           ]
             [ Html.text "Weiterlesen" ]
       ]
@@ -137,21 +137,21 @@ cell session editable childrenOfParent block ( attributes, children ) =
                     ]
                 []
         in
-            Html.node "div" (cellClasslist::attributes) (editButton::children)
+            Html.node "div" (dataAttr::cellClasslist::attributes) (editButton::children)
 
 renderBlock : Session.Model -> Int -> Block.Model -> Html Msg
 renderBlock session n block =
     case block.data of
-        Block.TextOnImage { text, image } ->
-            cell session True n block (renderTextOnImage text image)
-        Block.HeaderAndText { header, text, inverted } ->
-            cell session True n block (renderHeaderAndText header text inverted)
+        Block.TextOnImage data ->
+            cell session True n block (renderTextOnImage data)
+        Block.HeaderAndText data ->
+            cell session True n block (renderHeaderAndText data)
         Block.Container direction children ->
             cell session False n block (renderContainer session direction children)
         Block.Image image ->
             cell session True n block (renderImage image)
-        Block.HeaderTextLink { header, text, link } ->
-            cell session True n block (renderHeaderTextLink header text link)
+        Block.HeaderTextLink data ->
+            cell session True n block (renderHeaderTextLink data)
         Block.PortraitWithQuote data ->
             cell session True n block (renderPortraitWithQuote data)
 
