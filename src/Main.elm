@@ -298,6 +298,16 @@ renderCornerMenu m =
         ]
 
 
+appendMaybe : (b -> a ) -> Maybe b -> List a -> List a
+appendMaybe f x xs = case x of
+                 Just v -> (f v)::xs
+                 Nothing -> xs
+
+appendIf : Bool -> a -> List a -> List a
+appendIf p x xs = if p
+             then x::xs
+             else xs
+
 view : Model -> Html Msg
 view model =
     case model.currentPage of
@@ -305,29 +315,24 @@ view model =
             div [] [ Html.text "Please wait" ]
         Just page ->
             div []
-            [ div [ classList [ ( "page", True )
-                              , ( "page--edit-mode", model.editMode )
-                              ]
-                  ]
-                  [ Header.view page.id model.routes |> Html.map HeaderMsg
-                  , Page.view model.session page |> Html.map PageMsg
-                  ]
-            , case model.editing of
-                  Nothing ->
-                      div [] []
-                  Just someBlock ->
-                      Editor.view someBlock |> Html.map EditorMsg
-            , case model.login of
-                  Nothing ->
-                      div [] []
-                  Just loginModel ->
-                      Login.view loginModel |> Html.map LoginMsg
-            , case Session.mayEditBlocks model.session of
-                  False ->
-                      div [] []
-                  True ->
-                      renderCornerMenu model
-            ]
-            
+            ([ div [ classList [ ( "page", True )
+                               , ( "page--edit-mode", model.editMode )
+                               ]
+                   ]
+                   [ Header.view page.id model.routes |> Html.map HeaderMsg
+                   , Page.view model.session page |> Html.map PageMsg
+                   ]
+             ]
 
+            |> appendMaybe
+                 (\block -> Editor.view block |> Html.map EditorMsg)
+                 model.editing
+
+            |> appendMaybe
+                 (\b -> Html.map LoginMsg (Login.view b))
+                 model.login
+
+            |> appendIf
+                 (Session.mayEditBlocks model.session)
+                 (renderCornerMenu model))
             
