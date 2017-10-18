@@ -82,54 +82,50 @@ getPageById pageId = WebSocket.send server
                      ("{\"msg-type\":\"get-page\",\"page-id\":"
                           ++ (toString pageId) ++ "}")
 
+
 saveBlock : Block.Model -> Cmd Msg
 saveBlock block =
     let attributes = [ ("msg-type", Encode.string "save-block")
                      , ("block-id", Encode.int block.id)
                      ]
     in
-
+    let blockAttr = 
         case block.data of
             Block.HeaderAndText { header, text, inverted } ->
-                let attr = List.append attributes
-                           [ ("header", Encode.string header)
-                           , ("text", Encode.string text)
-                           , ("inverted", Encode.bool inverted)
-                           ]
-                in
-                    WebSocket.send server
-                        (Encode.object attr |> Encode.encode 0)
+                Just [ ("header", Encode.string header)
+                     , ("text", Encode.string text)
+                     , ("inverted", Encode.bool inverted)
+                     ]
             Block.HeaderTextLink { header, text, link } ->
-                let attr = List.append attributes
-                           [ ("header", Encode.string header)
-                           , ("text", Encode.string text)
-                           , ("link", Encode.string link)
-                           ]
-                in
-                    WebSocket.send server
-                        (Encode.object attr |> Encode.encode 0)
+                Just [ ("header", Encode.string header)
+                     , ("text", Encode.string text)
+                     , ("link", Encode.string link)
+                     ]
             Block.TextOnImage { text, image } ->
-                let attr = List.append attributes
-                           [ ("text", Encode.string text)
-                           , ("image", Encode.string image)
-                           ]
-                in
-                    WebSocket.send server
-                        (Encode.object attr |> Encode.encode 0)
-
+                Just [ ("text", Encode.string text)
+                     , ("image", Encode.string image)
+                     ]
             Block.PortraitWithQuote { quote, author, portrait } ->
-                let attr = List.append attributes
-                           [ ( "quote", Encode.string quote )
-                           , ( "author", Encode.string author )
-                           , ( "portrait", Encode.string portrait )
-                           ]
-                in
-                    WebSocket.send server
-                        (Encode.object attr |> Encode.encode 0)
+                Just [ ( "quote", Encode.string quote )
+                     , ( "author", Encode.string author )
+                     , ( "portrait", Encode.string portrait )
+                     ]
+            Block.Container _ _ ->
+                Nothing
+            Block.Image _ ->
+                Nothing
+    in
 
-            _ -> Cmd.none
+    case blockAttr of
 
+        Just a ->
+            let allAttr = List.append attributes a in
 
+            WebSocket.send server
+                (Encode.object allAttr |> Encode.encode 0)
+
+        Nothing ->
+            Cmd.none
 
 updateWs : String -> Model -> ( Model, Cmd Msg )
 updateWs content model =
