@@ -6,7 +6,7 @@ import Html exposing (Html, div, button, input)
 import Html.Attributes exposing (class, classList, type_)
 import Html.Events exposing (onClick, onInput)
 
-update : Msg -> Model -> ( Model, Cmd Msg )
+update : Msg -> Model -> ( Model, Cmd msg )
 update msg m = 
     case msg of
         ChangeEmail newEmail ->

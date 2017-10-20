@@ -5,6 +5,44 @@
   min-height: 100vh;
 
   &--edit-mode {
-    transform: scale(0.4) translateY(100px);
+      transform: scale(0.4) translateY(100px);
+      user-select: none;
+  }
+}
+
+
+.placeholder {
+  @keyframes placeholder-animation {
+    0% {
+      background: lighten($blue, 20%);
+    }
+    50% {
+      background: lighten($blue, 30%);
+    }
+    100% {
+      background: lighten($blue, 20%);
+    }
+  }
+
+  position: relative;
+  cursor: pointer;
+  animation: placeholder-animation 3s infinite;
+  min-height: 5rem;
+  min-width: 5rem;
+  transition: background 0.3s;
+
+  &__inner {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: lighten($blue, 40%);
+    transition: opacity 0.3s ease-in-out;
+    opacity: 0;
+    
+    &:hover {
+      opacity: 1;
+    }
   }
 }

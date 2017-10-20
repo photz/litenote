@@ -2,16 +2,37 @@
   bottom: 0;
   right: 0;
   position: fixed;
+  z-index: 999;
+  display: flex;
+  padding: 0.25rem;
+  padding-right: 0;
+  background-color: lighten($blue, 10%);
 
   &__button {
-    width: 2rem;
-    height: 2rem;
-    background: $blue;
+    width: 2.5rem;
+    height: 2.5rem;
     cursor: pointer;
-    transition: all 0.3s ease-in-out;
+    transition: background-color 0.3s ease-in-out;
+    margin-right: 0.25rem;
+
+    &--plus {
+      background-image: url("plus.svg");
+    }
+    
+    &--pencil {
+      background-image: url("pencil.svg");
+    }
+
+    &:hover {
+      background-color: lighten($blue, 20%);
+    }
 
     &--active {
-      background: lighten($blue, 30%);
+      background-color: lighten($blue, 30%);
+    }
+
+    &--active.corner-menu__button:hover {
+      background-color: lighten($blue, 40%);
     }
   }
 }

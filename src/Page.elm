@@ -2,9 +2,15 @@ module Page exposing (..)
 
 import Html exposing (Html, div, span, a)
 import Html.Attributes exposing (class, classList, href, style, attribute)
-import Html.Events exposing (onClick)
+import Html.Events exposing (onClick, onMouseDown, onMouseUp)
 import Block
 import Session.Model as Session exposing (..)
+
+type alias Placeholder = { parent : Int
+                         , position : Int
+                         }
+
+type WithPlaceholder = Foo Model (Maybe Placeholder)
 
 type alias Model = { name : String
                    , id : Int
@@ -12,6 +18,8 @@ type alias Model = { name : String
                    }
 
 type Msg = SelectBlock Block.Model
+         | Drop
+         | Drag Block.Model
 
 getPath : Model -> String
 getPath page = "#" ++ "unknown"
@@ -44,18 +52,66 @@ renderTextOnImage data =
     )
 
 
-renderContainer : Session.Model -> Block.Direction -> List (Block.Model) -> ( List (Html.Attribute Msg), List (Html Msg) )
-renderContainer session direction children =
+
+
+renderContainer : Maybe { parentId : Int, insertPos : Int } -> Session.Model -> Int -> Block.Direction -> List (Block.Model) -> ( List (Html.Attribute Msg), List (Html Msg) )
+renderContainer dragTarget session blockId direction children =
     let modifier = case direction of
                        Block.Row -> "grid__cell--row"
                        Block.Column -> "grid__cell--column"
+
+    in
+
+    let dataAttr = attribute "data-direction" (case direction of
+                       Block.Row -> "row"
+                       Block.Column -> "column")
+
+    in
+
+    let c =
+        case dragTarget of
+            Nothing -> 
+                children
+                    |> List.map
+                       (renderBlock
+                            dragTarget
+                            session
+                            (List.length children))
+                           
+            Just { insertPos, parentId } as dt ->
+
+                if parentId == blockId
+                then 
+                    List.append
+                        (List.take insertPos children |> List.map (renderBlock dragTarget session (List.length children)))
+                        (renderPlaceholder::(List.drop insertPos children |> List.map (renderBlock dragTarget session (List.length children))))
+
+                else 
+                    children
+                        |> List.map
+                           (renderBlock
+                                dt
+                                session
+                                (List.length children))
+
+
+
     in
         ( [ classList [ ("grid__cell", True)
                       , (modifier, True)
                       ]
+          , dataAttr
           ]
-        , children |> List.map (renderBlock session (List.length children))
+        , c
         ) 
+
+renderPlaceholder =
+    div [ classList [ ( "placeholder", True ) ]
+        , onMouseUp Drop
+        ]
+        [ div [ class "placeholder__inner" ]
+              []
+        ]
             
 renderImage : String -> ( List (Html.Attribute Msg), List (Html Msg) )
 renderImage image =
@@ -123,6 +179,13 @@ renderPortraitWithQuote data =
         
 cell : Session.Model -> Bool -> Int -> Block.Model -> ( List (Html.Attribute Msg), List (Html Msg)) -> Html Msg
 cell session editable childrenOfParent block ( attributes, children ) =
+    let dataAttr = attribute "data-block-id" (toString block.id) in
+
+    let mouseDown = case editable of
+                        True -> onMouseDown (Drag block)
+                        False -> style []
+    in
+
     let cellClasslist =
             classList
             [ ("grid__cell", True)
@@ -137,17 +200,17 @@ cell session editable childrenOfParent block ( attributes, children ) =
                     ]
                 []
         in
-            Html.node "div" (dataAttr::cellClasslist::attributes) (editButton::children)
+            Html.node "div" (mouseDown::dataAttr::cellClasslist::attributes) (editButton::children)
 
-renderBlock : Session.Model -> Int -> Block.Model -> Html Msg
-renderBlock session n block =
+renderBlock : Maybe { parentId : Int, insertPos : Int } -> Session.Model -> Int -> Block.Model -> Html Msg
+renderBlock dragTarget session n block =
     case block.data of
         Block.TextOnImage data ->
             cell session True n block (renderTextOnImage data)
         Block.HeaderAndText data ->
             cell session True n block (renderHeaderAndText data)
         Block.Container direction children ->
-            cell session False n block (renderContainer session direction children)
+            cell session False n block (renderContainer dragTarget session block.id direction children)
         Block.Image image ->
             cell session True n block (renderImage image)
         Block.HeaderTextLink data ->
@@ -156,9 +219,9 @@ renderBlock session n block =
             cell session True n block (renderPortraitWithQuote data)
 
         
-view : Session.Model -> Model -> Html Msg
-view session page = div
+view : Maybe { parentId : Int, insertPos : Int } -> Session.Model -> Model -> Html Msg
+view dragTarget session page = div
                   [ class "grid" ]
-                  [ page.content |> renderBlock session 1 ]
+                  [ page.content |> renderBlock dragTarget session 1 ]
 
          
