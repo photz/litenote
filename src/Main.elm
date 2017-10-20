@@ -257,7 +257,7 @@ updateDrop model =
                                 Nothing -> ( model, Cmd.none )
                                 Just { parentId, insertPos } ->
                                     ( { model | dragTarget = Nothing
-                                      , editMode = Nothing
+                                      , editMode = Just { dragging = Nothing }
                                       }
                                     , reparentBlock
                                         draggedBlock.id
