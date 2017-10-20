@@ -7,92 +7,10 @@
   </head>
   <body>
     <script src="main.js"></script>
+    <script src="../js/watcher.js"></script>
     <script>
-      window.litenote = Elm.Main.fullscreen();
-      function getCellIndex(node) {
-        let index = 0;
-        while (null !== (node = node.previousElementSibling)) {
-          const isBlock = node.classList.contains('grid__cell');
-          if (isBlock) {
-            index++;
-          }
-        }
-        return index;
-      }
-      function getBlockRoot(el) {
-        let current = el;
-        while (current !== document.body) {
-          if (current.classList.contains('block')) {
-            return current;
-          }
-          current = current.parentNode;
-        }
-        return null;
-      }
-      const attrName = 'data-block-id';
-      let lastParentId = null;
-      let lastInsertPos = null;
-      const placeholderClass = 'placeholder';
-      document.body.addEventListener('mousemove', (e) => {
-
-        const isPlaceholder = e.target.classList.contains(placeholderClass) ||
-              e.target.parentNode.classList.contains(placeholderClass);
-        if (isPlaceholder) {
-          return;
-        }
-
-        const rootEl = getBlockRoot(e.target);
-        let newBlockId = null;
-
-        if (rootEl instanceof Element) {
-          newBlockId = parseInt(rootEl.getAttribute(attrName), 10);
-
-          const parentRootEl = getBlockRoot(rootEl.parentNode);
-
-          if (parentRootEl instanceof Element) {
-            const id = parseInt(parentRootEl.getAttribute(attrName), 10);
-
-            const direction = parentRootEl.getAttribute('data-direction');
-
-            let center = 0;
-            let current = 0;
-
-            let rect = rootEl.getBoundingClientRect();
-
-            if ('row' === direction) {
-              let min = rect.left;
-              let max = rect.left + rect.width;
-              center = (min + max) / 2;
-              current = e.clientX;
-            }
-            else if ('column' === direction) {
-              let min = rect.top;
-              let max = rect.top + rect.height;
-              center = (min + max) / 2;
-              current = e.clientY;
-            }
-            else {
-              throw new Error(`invalid direction ${direction}`);
-            }
-
-            const currentIndex = getCellIndex(rootEl);
-
-            const insertBefore = current < center;
-
-            const insertPos = insertBefore ? currentIndex : currentIndex + 1;
-
-            if (lastParentId !== id || lastInsertPos !== insertPos) {
-              litenote.ports.blockId.send({
-                parentId: id,
-                insertPos: insertPos
-              });
-              
-              lastParentId = id;
-              lastInsertPos = insertPos;
-            }
-          }
-        }
-      });
+      const elmApp = Elm.Main.fullscreen();
+      const watcher = new litenote.Watcher(elmApp);
     </script>
   </body>
 </html>
