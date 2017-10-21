@@ -5,7 +5,7 @@ css_dest=$(build_dir)/stylesheet.css
 optimized_dest=$(build_dir)/app.js
 closure_path=closure.jar
 
-.PHONY: watch build build-sass watch-sass closure-build
+.PHONY: watch build build-sass watch-sass closure-build build-js watch-build-js
 
 # compiling Elm
 
@@ -38,3 +38,16 @@ watch-sass:
 	| entr make build-sass
 
 
+# js
+
+build-js:
+	java -jar $(closure_path) \
+	'js/**.js' \
+	--externs closure-externs/elm.js \
+	--js_output_file build/app.js \
+	--compilation_level SIMPLE
+
+watch-build-js:
+	find js -name '*.js' \
+	| grep -v '#' \
+	| entr make build-js

@@ -2,7 +2,7 @@
 const litenote = {};
 
 /**
- * @param {Object} elmApp
+ * @param {ElmApp} elmApp
  * @constructor
  */
 litenote.Watcher = function(elmApp) {
@@ -10,15 +10,16 @@ litenote.Watcher = function(elmApp) {
    * @private
    * @number
    */
-  this.lastParentId_ = null;
+  this.lastParentId_ = 0;
 
   /**
    * @private
    * @type {number}
    */
-  this.lastInsertPos_ = null;
+  this.lastInsertPos_ = 0;
 
   /**
+   * @type {ElmApp}
    * @private
    */
   this.elmApp_ = elmApp;
@@ -140,7 +141,7 @@ litenote.Watcher.getBlockRoot_ = function(el) {
 
 /**
  * @param {Element} el
- * @return {bool}
+ * @return {boolean}
  * @private
  */
 litenote.Watcher.isContainer_ = function(el) {
