@@ -44,17 +44,24 @@ litenote.Watcher.prototype.handleMouseMove_ = function (e) {
   }
 
   const rootEl = litenote.Watcher.getBlockRoot_(e.target);
-  let newBlockId = null;
 
+  let newBlockId = null;
 
   if (!(rootEl instanceof Element)) return;
 
   newBlockId = parseInt(rootEl.getAttribute(litenote.Watcher.BLOCK_ID_ATTR_NAME), 10);
 
+  if (litenote.Watcher.isContainer_(rootEl)) {
+    this.elmApp_.ports.blockId.send({
+      parentId: newBlockId,
+      insertPos: 0
+    });
+    return;
+  }
+
   const parentRootEl = litenote.Watcher.getBlockRoot_(rootEl.parentNode);
 
   if (!(parentRootEl instanceof Element)) return;
-
 
   const id = parseInt(parentRootEl.getAttribute(litenote.Watcher.BLOCK_ID_ATTR_NAME), 10);
 
@@ -129,6 +136,16 @@ litenote.Watcher.getBlockRoot_ = function(el) {
         current = current.parentNode;
     }
     return null;
+};
+
+/**
+ * @param {Element} el
+ * @return {bool}
+ * @private
+ */
+litenote.Watcher.isContainer_ = function(el) {
+  return el.classList.contains('grid__cell--row') ||
+    el.classList.contains('grid__cell--column');
 };
 
 

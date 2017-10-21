@@ -5,6 +5,7 @@ import Html.Attributes exposing (class, classList, href, style, attribute)
 import Html.Events exposing (onClick, onMouseDown, onMouseUp)
 import Block
 import Session.Model as Session exposing (..)
+import Maybe.Extra as Maybe exposing (isJust)
 
 type alias Placeholder = { parent : Int
                          , position : Int
@@ -99,6 +100,9 @@ renderContainer dragTarget session blockId direction children =
     in
         ( [ classList [ ("grid__cell", True)
                       , (modifier, True)
+                      , ("container--highlight-droparea"
+                        , Maybe.isJust dragTarget &&
+                            List.isEmpty children)
                       ]
           , dataAttr
           ]
